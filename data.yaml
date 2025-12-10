@@ -1,0 +1,6 @@
+path: datasets
+train: ../train/images
+val: ../valid/images
+
+nc: 4
+names: ['ball', 'goalkeeper', 'player', 'referee']
