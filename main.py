@@ -3,11 +3,9 @@ from utils import read_video, save_video
 from trackers import Tracker
 import os
 from pathlib import Path
-print("Current working dir:", os.getcwd())
+from visualizations.json_extractor import export_match_json
 
 import cv2
-
-
 import numpy as np
 from team_assigner import TeamAssigner
 from player_ball_assigner import PlayerBallAssigner
@@ -29,22 +27,6 @@ def _resolve_input_video_path():
     raise FileNotFoundError(
         f"Input video not found. Checked: {', '.join(str(path) for path in candidates)}"
     )
-
-def get_next_match_id():
-    counter_file = 'match_counter.txt'
-    
-    if os.path.exists(counter_file):
-        with open(counter_file, 'r') as f:
-            last_id = int(f.read().strip())
-    else:
-        last_id = 0
-    
-    new_id = last_id + 1
-    
-    with open(counter_file, 'w') as f:
-        f.write(str(new_id))
-    
-    return f"match_{new_id:04d}"
 
 
 def main():
@@ -96,6 +78,7 @@ def main():
                                                  player_id)
             tracks['players'][frame_num][player_id]['team'] = team 
             tracks['players'][frame_num][player_id]['team_color'] = team_assigner.team_colors[team]
+    
 
     
     # Assign Ball Aquisition
@@ -114,18 +97,6 @@ def main():
     team_1_possession = np.sum(team_ball_control == 'team_1') / len(team_ball_control)
     team_2_possession = np.sum(team_ball_control == 'team_2') / len(team_ball_control)
 
-    # Build per-player records by merging tracks + speed_distance
-    players = []
-    for track_id, track_info in tracks['players'].items():
-        player_entry = {
-            "player_id": track_id,
-            "team": track_info.get("team", "unknown"),
-            "ball_control": track_info.get("ball_control", 0),
-            "avg_speed": speed_and_distance_estimator[track_id].get("avg_speed", 0),
-            "distance_covered": speed_and_distance_estimator[track_id].get("distance_covered", 0),
-            "touches": track_info.get("touches", 0)
-        }
-        players.append(player_entry)
 
     # Draw output 
     ## Draw object Tracks
@@ -140,22 +111,8 @@ def main():
     # Save video
     save_video(output_video_frames, 'output_videos/output_video.avi')
 
-    match_data = {
-        "match_id": get_next_match_id(),
-        "team_names": ["Team A", "Team B"],
-        "team_possession": {
-        "team_1": team_1_possession,
-        "team_2": team_2_possession
-        },
-        "player": players ,
-        'tracks': tracks,  
-        'events': [],  # ← missing
-        'camera_movement': camera_movement_per_frame
-        }
-
-    json_str = json.dumps(match_data, default=lambda o: o.__dict__, indent=4)
-    with open('match_data.json', 'w') as json_file:
-        json_file.write(json_str)
+    export_match_json(tracks, team_ball_control, team_names=["Team A", "Team B"])
+    
 
 
 if __name__ == '__main__':
