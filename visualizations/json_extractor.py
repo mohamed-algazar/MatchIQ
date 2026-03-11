@@ -21,6 +21,35 @@ def get_next_match_id():
     
     return f"match_{new_id:04d}"
 
+
+# Function to determine which team has ball control based on player tracks
+def determine_ball_control(tracks):    
+    # intialize the previous player and team who has the ball to None
+    previous_player_with_ball = None
+    previous_team_with_ball = None
+
+    #loop on frames and check which player is closest to the ball
+    for frame_num, player_track in enumerate(tracks['players']):
+        current_player_id = None
+        current_team = None
+        
+        #loop on players in the current frame and check if they have the ball
+        for player_id, track in player_track.items():
+            if track.get('has_ball', False):
+                current_player_id = player_id
+                current_team = track.get('team', None)
+                break
+        # check ball loss by comparing current team with previous team
+        if previous_player_with_ball is not None and current_team != previous_team_with_ball:
+            frame = tracks['players'][frame_num - 1]
+            previous = frame[previous_player_with_ball]
+            previous['ball_loss'] = previous.get('ball_loss', 0) + 1
+
+        # update the current player and team with ball control for the current frame
+        previous_player_with_ball = current_player_id
+        previous_team_with_ball = current_team
+
+
 # Assign ball touches based on proximity to the ball
 def assign_ball_touches(tracks, distance_threshold=70):
     # Check if the ball exists in this frame
@@ -86,6 +115,7 @@ def build_players(tracks):
             "avg_speed": track_info.get("speed", 0),
             "distance_covered": track_info.get("distance", 0),
             "touches": track_info.get("touches", 0),
+            "ball_loss": track_info.get("ball_loss", 0),
             "avg_position": {"x": avg_x, "y": avg_y},
             "positions": positions
         }
@@ -102,6 +132,9 @@ def export_match_json(tracks, team_ball_control, team_names=["Team A", "Team B"]
 
     # Run touch assignment before building player data
     assign_ball_touches(tracks)
+
+    # Run ball loss detection before building player data
+    determine_ball_control(tracks)
 
     # Build the match data dictionary to be exported as JSON
     match_data = {
