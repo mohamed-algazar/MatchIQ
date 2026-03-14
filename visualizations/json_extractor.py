@@ -79,9 +79,66 @@ def assign_ball_touches(tracks, distance_threshold=70):
                 tracks['players'][frame_num][player_id]['touches'] = track.get('touches', 0) + 1
             else:
                 tracks['players'][frame_num][player_id]['has_ball'] = False
+
+# Detect passes and turnovers based on changes in ball control between players and teams
+def detect_passes(tracks, distance_threshold=70, release_frames=3):
+    # Intialize lists to store detected passes and turnovers
+    passes = []
+    turnovers = []
+    # intialize variables to track the current ball owner, how many frames
+    # the ball has been away from the owner, and the frame when the ball was released
+    current_owner = None
+    frames_away = 0
+    release_frame = None
+    passer = None
+
+    # Loop through each frame and check for changes in ball control to identify passes and turnovers
+    for frame_num, player_track in enumerate(tracks['players']):
+        # Find who has the ball this frame
+        frame_owner = None
+        for player_id, track in player_track.items():
+            if track.get('has_ball', False):
+                frame_owner = {"player_id": player_id, "team": track.get("team")}
+                break
+
+        # If no one has the ball, check if we are in the middle of a potential pass (ball away from owner for a few frames)        
+        if frame_owner is None:
+            if current_owner is not None:
+                frames_away += 1
+                if frames_away >= release_frames and passer is None:
+                    passer = current_owner
+                    release_frame = frame_num
+        else:
+            # If the ball has a new owner, check if it's a pass or turnover
+            if passer is not None:
+                if frame_owner["player_id"] != passer["player_id"]:
+                    if frame_owner["team"] == passer["team"]:
+                        passes.append({
+                            "frame_start": release_frame,
+                            "frame_end": frame_num,
+                            "passer_id": passer["player_id"],
+                            "receiver_id": frame_owner["player_id"],
+                            "team": passer["team"]
+                        })
+                    else:
+                        turnovers.append({
+                            "frame_start": release_frame,
+                            "frame_end": frame_num,
+                            "losing_player_id": passer["player_id"],
+                            "gaining_player_id": frame_owner["player_id"],
+                            "losing_team": passer["team"],
+                            "gaining_team": frame_owner["team"]
+                        })
+                passer = None
+                release_frame = None
+
+            current_owner = frame_owner
+            frames_away = 0
+
+    return passes, turnovers
                 
 # Build player data dictionary by aggregating information across frames
-def build_players(tracks):
+def build_players(tracks, passes, turnovers):
     players = []
     # gather all unique player IDs across all frames
     all_player_ids = set()
@@ -107,6 +164,12 @@ def build_players(tracks):
         avg_x = round(np.mean([p["x"] for p in positions]), 2) if positions else 0
         avg_y = round(np.mean([p["y"] for p in positions]), 2) if positions else 0
 
+        # Count passes made, passes received, and turnovers for this player
+        passes_made     = sum(1 for p in passes    if p["passer_id"]        == track_id)
+        passes_received = sum(1 for p in passes    if p["receiver_id"]      == track_id)
+        turnovers_count = sum(1 for t in turnovers if t["losing_player_id"] == track_id)
+
+
         # Build player dictionary with aggregated information
         player_entry = {
             "player_id": track_id,
@@ -116,6 +179,9 @@ def build_players(tracks):
             "distance_covered": track_info.get("distance", 0),
             "touches": track_info.get("touches", 0),
             "ball_loss": track_info.get("ball_loss", 0),
+            "passes_made": passes_made,
+            "passes_received": passes_received,
+            "turnovers": turnovers_count,
             "avg_position": {"x": avg_x, "y": avg_y},
             "positions": positions
         }
@@ -136,6 +202,10 @@ def export_match_json(tracks, team_ball_control, team_names=["Team A", "Team B"]
     # Run ball loss detection before building player data
     determine_ball_control(tracks)
 
+    # Run pass and turnover detection before building player data
+    passes, turnovers = detect_passes(tracks)
+
+
     # Build the match data dictionary to be exported as JSON
     match_data = {
         "match_id": get_next_match_id(),
@@ -144,7 +214,9 @@ def export_match_json(tracks, team_ball_control, team_names=["Team A", "Team B"]
             "team_1": team_1_possession,
             "team_2": team_2_possession
         },
-        "player": build_players(tracks)
+        "passes": passes,
+        "turnovers": turnovers,
+        "player": build_players(tracks, passes, turnovers)
     }
 
     # Handle serialization of numpy data types when dumping to JSON
