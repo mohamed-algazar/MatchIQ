@@ -1,2 +1,20 @@
-*__pycahce__*
+# videos
+*.mp4
+*.avi
+
+# models
+*.pt
+
+# pickle files
+*.pkl
+
+# outputs
+output_videos/
+heatmap*.png
+
+# data
+input_videos/
+
+# system
+__pycache__/
 *.pyc
