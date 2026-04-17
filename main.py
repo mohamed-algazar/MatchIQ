@@ -16,7 +16,7 @@ from speed_and_distance_estimator import SpeedAndDistance_Estimator
 
 def _resolve_input_video_path():
     root = Path(__file__).resolve().parent
-    relative_name = Path("vid_ucl.mp4")
+    relative_name = Path("myvid.mp4")
     candidates = [
         root / "input_videos" / relative_name
     ]
