@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+:root {
+  --pitch-green: #22c55e;
+  --pitch-green-dark: #16a34a;
+  --analytics-dark: #0f172a;
+  --analytics-card: #1e293b;
+  --analytics-border: #334155;
+  --accent-gold: #fbbf24;
+  --accent-blue: #3b82f6;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+
+  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: dark;
+  color: var(--text-primary);
+  background-color: var(--analytics-dark);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: var(--analytics-dark);
+}
+
+button,
+[role="button"],
+a,
+input[type="submit"],
+input[type="button"] {
+  cursor: pointer;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--analytics-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--analytics-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* Glassmorphism Classes */
+.glass {
+  background: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.pitch-gradient {
+  background: radial-gradient(circle at center, #166534, #064e3b, #0f172a);
+}

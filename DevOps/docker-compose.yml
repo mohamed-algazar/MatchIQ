@@ -1,0 +1,79 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: football-db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=football_analytics
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    container_name: football-redis
+    ports:
+      - "6379:6379"
+
+  backend:
+    build:
+      context: ../Backend
+      dockerfile: ./Backend/Dockerfile
+    container_name: football-backend
+    volumes:
+      - ../Backend:/app
+      - football_uploads:/app/uploads
+    environment:
+      - POSTGRES_SERVER=db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=football_analytics
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - SECRET_KEY=your-production-secret-key-change-this
+    depends_on:
+      - db
+      - redis
+    ports:
+      - "8000:8000"
+
+  worker:
+    build:
+      context: ../Backend
+      dockerfile: ./Backend/Dockerfile
+    container_name: football-worker
+    command: celery -A app.core.celery_app worker --loglevel=info
+    volumes:
+      - ../Backend:/app
+      - football_uploads:/app/uploads
+    environment:
+      - POSTGRES_SERVER=db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=football_analytics
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+
+  frontend:
+    build:
+      context: ../Frontend
+      dockerfile: ./Frontend/Dockerfile
+    container_name: football-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  football_uploads:
+
+
+networks:
+  default:
+    name: football-network

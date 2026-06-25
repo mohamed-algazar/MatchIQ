@@ -1,0 +1,87 @@
+# =============================================================
+#  MatchIQ — .gitignore
+# =============================================================
+
+# --- Model Weights & Large Binary Files ----------------------
+*.pt
+*.pth
+*.onnx
+*.pkl
+*.h5
+*.pb
+AI Model/
+training/runs/
+training/datasets/
+
+# --- Environment & Secrets -----------------------------------
+.env
+.env.*
+*.key
+*.pem
+config/secrets.yaml
+config/local_*.yaml
+
+# --- Python --------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.Python
+env/
+venv/
+.venv/
+ENV/
+
+# --- Jupyter -------------------------------------------------
+.ipynb_checkpoints/
+*.ipynb
+
+# --- Data & Output -------------------------------------------
+data/videos/
+data/raw/
+ffmpeg_temp/
+*.mp4
+*.avi
+*.mov
+*.mkv
+match_data.json
+match_counter.txt
+calibrations/*.json
+calibrations/*.yaml
+
+# --- Frontend ------------------------------------------------
+Frontend/node_modules/
+Frontend/.next/
+Frontend/dist/
+Frontend/build/
+Frontend/.env.local
+
+# --- Backend -------------------------------------------------
+Backend/__pycache__/
+Backend/.env
+Backend/logs/
+Backend/uploads/
+
+# --- DevOps --------------------------------------------------
+DevOps/*.tfstate
+DevOps/*.tfstate.*
+DevOps/.terraform/
+
+# --- IDE & OS ------------------------------------------------
+.idea/
+.vscode/
+*.suo
+*.user
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+
+# --- Evaluation & Dev ----------------------------------------
+development_and_analysis/
+evaluation/outputs/
