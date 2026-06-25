@@ -337,7 +337,7 @@ speed:
 **Mohamed Al-Gazar**
 BSc Computer Science & AI — Helwan University (2022–2026)
 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=flat&logo=linkedin)](https://linkedin.com/in/YOUR_LINKEDIN)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=flat&logo=linkedin)](www.linkedin.com/in/mohamed-ali-229254408)
 [![GitHub](https://img.shields.io/badge/GitHub-Follow-181717?style=flat&logo=github)](https://github.com/mohamed-algazar)
 
 ---
